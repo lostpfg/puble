@@ -1,0 +1,56 @@
+{
+	"name": "puble",
+	"version": "0.0.0",
+	"description": "",
+	"type": "module",
+    "scripts": {
+        "build": "npm run pre-build && npm run build:ext",
+        "build:ext": "microbundle --jsx React.createElement --name puble",
+        "pre-build": "rimraf dist",
+        "test:watch": "jest",
+        "test:coverage": "jest --coverage",
+        "release": "npm publish",
+        "docs:dev": "rspress dev",
+        "docs:build": "rspress build",
+        "docs:preview": "rspress preview"
+    },
+    "main": "./dist/puble.js",
+    "browser": "./dist/puble.umd.js",
+    "umd:main": "./dist/puble.umd.js",
+    "jsnext:main": "./dist/puble.modern.js",
+    "module": "./dist/puble.module.js",
+    "source": "./src/index.ts",
+    "syntax": {
+        "esmodules": "./dist/puble.modern.js"
+    },
+    "types": "./dist/index.d.ts",
+    "typings": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "browser": "./dist/puble.module.js",
+            "umd": "./dist/puble.umd.js",
+            "import": "./dist/puble.module.js",
+            "require": "./dist/puble.js"
+        }
+    },
+	"peerDependencies": {
+        "react": "^18.2.0",
+		"rxjs": "^7.8.0"
+    },
+	"devDependencies": {
+        "@types/jest": "^29.5.8",
+        "@types/node": "^17.0.10",
+        "@types/react": "^18.0.21",
+        "jest": "^29.7.0",
+        "jest-environment-jsdom": "^29.7.0",
+        "microbundle": "^0.15.1",
+        "rimraf": "^5.0.5",
+        "rspress": "^1.6.2",
+        "ts-jest": "^29.1.1",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.2.2"
+    },
+	"author": "",
+	"license": "ISC"
+}

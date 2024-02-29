@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "jsx": "react",
+        "target": "ESNext",
+        "sourceMap": true,
+        "forceConsistentCasingInFileNames": true,
+        "declaration": true,
+        "module": "ESNext",
+        "removeComments": true,
+        "rootDir": "src",
+        "outDir": "dist/",
+        "baseUrl": "./",
+        "moduleResolution": "node",
+        "experimentalDecorators": false,
+        "esModuleInterop": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noImplicitThis": true,
+        "strictPropertyInitialization": false,
+        "strictNullChecks": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "importHelpers": true,
+        "stripInternal": true,
+        "lib": ["ESNext", "dom"],
+		"types": ["node", "react", "jest"]
+    },
+    "include": ["src/**/*"],
+    "files": ["src/index.ts"]
+}
