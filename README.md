@@ -31,14 +31,14 @@ An API with methods for publishing and subscribing to events, managing multiple 
 Simplifies publishing events in React Components. It uses usePubSub to access publishing functionality.
 
 Parameters:
-    - topic: Optional topic name for the events.
+- topic: Optional topic name for the events.
 Returns:
-    - publish: Function to trigger events. It supports optional payload.
+- publish: Function to trigger events. It supports optional payload.
 
 ###  useListener
 Simplifies subscribtion to events in React Components. Automatically handles subscription lifecycle with component mounting and unmounting.
 
 Parameters:
-    - Supports dual use: Either pass a topic name and event type, or just an event type for the default topic.
-    - callback: Function that executes when an event is received.
-    - deps: Dependency array to control re-subscription in React's useEffect.
+- Supports dual use: Either pass a topic name and event type, or just an event type for the default topic.
+- callback: Function that executes when an event is received.
+- deps: Dependency array to control re-subscription in React's useEffect.
