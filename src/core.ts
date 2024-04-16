@@ -22,7 +22,7 @@ class EventPubSub {
     }
 
     public registerNamespace(topic: TopicName) {
-        if (!!this.bus[topic]) return;
+        if (!!this.topicExists(topic)) return;
         this.bus[topic] = {
             subject: new Subject(),
             replaySubject: new ReplaySubject(),
@@ -31,10 +31,10 @@ class EventPubSub {
     }
 
     public topicExists(topic: TopicName): boolean {
-        return (typeof this.bus[topic] !== "undefined");
+        return typeof this.bus[topic] !== "undefined";
     }
 
-    public publish<T = unknown>(
+    public publish<T = any>(
 		topic: string,
 		eventType: string,
 		payload?: Event<T>["payload"]
@@ -50,12 +50,12 @@ class EventPubSub {
         return this.bus[topic].subject;
     }
 
-    public subscribe<T = unknown>(topic: string, eventType: string, history?: number): Observable<T> {
+    public subscribe<T = any>(topic: string, eventType: string, history?: number): Observable<T> {
 		this.registerNamespace(topic);
 
 		const subjectOvervable = this.bus[topic].subject.pipe(
 			filter((e: Event) => e.eventType === eventType),
-			map<Event, T>((e) => e.payload as T) // Assure TypeScript about the type conversion
+			map<Event, T>((e) => e.payload as T)
 		);
 
 		if (typeof history !== "undefined") {
@@ -71,7 +71,7 @@ class EventPubSub {
     }
 
     public dispose(topic: string): void {
-        if (typeof this.bus[topic] === "undefined") return;
+        if (!this.topicExists(topic)) return;
         this.bus[topic].subject.complete();
 		this.bus[topic].replaySubject.complete();
         delete this.bus[topic];
