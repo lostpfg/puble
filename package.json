@@ -1,7 +1,20 @@
 {
-	"name": "puble",
-	"version": "0.0.1",
-	"description": "",
+	"name": "@lostpfg/puble",
+	"version": "0.1.1",
+    "author": "Peter Fousteris",
+	"description": "Puble provides a set of React hooks and a service for a publish-subscribe pattern implementation using RxJS",
+    "keywords": [
+        "react",
+        "hooks",
+        "rxjs",
+        "pubsub",
+        "publish",
+        "subscribe"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lostpfg/puble"
+    },
 	"type": "module",
     "scripts": {
         "build": "npm run pre-build && npm run build:ext",
@@ -51,6 +64,8 @@
         "ts-node": "^10.9.1",
         "typescript": "^5.2.2"
     },
-	"author": "",
+    "publishConfig": {
+		"access": "public"
+	},
 	"license": "ISC"
 }

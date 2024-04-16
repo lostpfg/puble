@@ -11,11 +11,11 @@ export function useListener<T = any>(
     callbackOrDeps?: ((payload: T) => void) | React.DependencyList,
     deps?: React.DependencyList
 ) {
-    const withTopic = typeof topicOrEventType === "string" && typeof eventTypeOrCallback === "function";
+    const withTopic = typeof topicOrEventType === "string" && typeof eventTypeOrCallback === "string";
 
     const topic = withTopic ? topicOrEventType : DEFALT_WILDCARD;
-    const eventType = !withTopic ? eventTypeOrCallback as EventType : topicOrEventType as EventType;
-    const callback = withTopic ? callbackOrDeps as (payload: T) => void : eventTypeOrCallback as (payload: T) => void;
+    const eventType = withTopic ? eventTypeOrCallback as EventType : topicOrEventType as EventType;
+    const callback = typeof eventTypeOrCallback === "function" ? eventTypeOrCallback: callbackOrDeps as (payload: T) => void;
     const dependencies = withTopic ? deps : callbackOrDeps as React.DependencyList;
 
     const { subscribe } = usePubSub(topic);
@@ -27,7 +27,9 @@ export function useListener<T = any>(
     }, [callback, dependencies]);
 
     useEffect(() => {
-        const unsubscribe = subscribe<T>(eventType, (p) => _callback.current(p));
+        const unsubscribe = subscribe<T>(eventType, (p) => {
+            _callback.current(p)
+        });
         return () => unsubscribe?.();
     }, [subscribe, eventType]);
 }

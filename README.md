@@ -1,6 +1,6 @@
 # Puble - PubSub React Hooks with RxJS
 
-Puble provides a set of React hooks and a service for a publish-subscribe pattern implementation using RxJS. It allows components within a React application to publish and subscribe to events.
+**Puble** provides a set of React hooks and a service for a publish-subscribe pattern powered by RxJS. It allows components within a React application to publish and subscribe to events asynchronously. Additionally it leverages the BroadCast Channel api to allow users to publish events between browsing contexts (windows, tabs, etc) and workers on the same origin.
 
 ## Installation
 ```bash
@@ -14,6 +14,7 @@ A singleton class that manages topics and event handling. Allows for registering
 Methods:
 - registerNamespace(topic): Registers a new topic if not already present.
 - publish(topic, eventType, payload): Publishes a new event to a specific topic.
+- brodcast(topic, eventType, payload): Broadcasts a new event to a specific topic.
 - subscribe(topic, eventType, history?): Subscribes to a topic and filters events by type. Optionally retrieves historical events.
 - dispose(topic): Cleans up and removes a topic and its associated observables.
 
@@ -27,13 +28,22 @@ Parameters:
 Returns:
 An API with methods for publishing and subscribing to events, managing multiple subscriptions, and unsubscribing.
 
+### useBroadcast
+Simplifies broadcasting events in React Components. It uses usePubSub to access broadcasting functionality.
+
+Parameters:
+- topic: Optional topic name for the events.
+Returns:
+- Function to trigger events. It supports optional payload.
+
+
 ### usePublisher
 Simplifies publishing events in React Components. It uses usePubSub to access publishing functionality.
 
 Parameters:
 - topic: Optional topic name for the events.
 Returns:
-- publish: Function to trigger events. It supports optional payload.
+- Function to trigger events. It supports optional payload.
 
 ###  useListener
 Simplifies subscribtion to events in React Components. Automatically handles subscription lifecycle with component mounting and unmounting.

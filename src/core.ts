@@ -1,5 +1,7 @@
 import { concat, filter, map, Observable, ReplaySubject, Subject, take } from "rxjs";
 import type { TopicName, Event as BaseEvent } from "./types";
+import { BroadcastEventChannel } from "./broadcastEventChannel";
+import { BROADCAST_CHANNEL_NAME } from "./index";
 
 type Event<T = any> = BaseEvent<T> & { submittedOn: number; }
 
@@ -11,6 +13,7 @@ type EventPubSubTopic = {
 
 class EventPubSub {
     private bus: Record<TopicName, EventPubSubTopic> = {};
+    private broadcastEventChannel: BroadcastEventChannel = new BroadcastEventChannel(BROADCAST_CHANNEL_NAME);
 
     private static instance: EventPubSub;
 
@@ -28,6 +31,9 @@ class EventPubSub {
             replaySubject: new ReplaySubject(),
             createdOn: new Date().getTime(),
         };
+        this.broadcastEventChannel.listen(topic, (payload) => {
+            this.publish(topic, payload.eventType, payload.payload);
+        });
     }
 
     public topicExists(topic: TopicName): boolean {
@@ -45,6 +51,15 @@ class EventPubSub {
 		this.bus[topic].replaySubject.next(event);
     }
 
+    public broadcast<T = any>(
+        topic: string,
+        eventType: string,
+        payload?: Event<T>["payload"]
+    ): void {
+        this.publish<T>(topic, eventType, payload);
+        this.broadcastEventChannel.broadcast(topic, eventType, payload);
+    }
+
     public subscribeTopic(topic: string) {
         this.registerNamespace(topic);
         return this.bus[topic].subject;
@@ -52,13 +67,12 @@ class EventPubSub {
 
     public subscribe<T = any>(topic: string, eventType: string, history?: number): Observable<T> {
 		this.registerNamespace(topic);
-
 		const subjectOvervable = this.bus[topic].subject.pipe(
 			filter((e: Event) => e.eventType === eventType),
 			map<Event, T>((e) => e.payload as T)
 		);
 
-		if (typeof history !== "undefined") {
+		if (typeof history !== "undefined" && history > 0) {
 			const  historicalObservable = this.bus[topic].replaySubject.pipe(
 				filter((e: Event) => e.eventType === eventType),
 				map<Event, T>((e) => e.payload as T),
@@ -75,6 +89,7 @@ class EventPubSub {
         this.bus[topic].subject.complete();
 		this.bus[topic].replaySubject.complete();
         delete this.bus[topic];
+        this.broadcastEventChannel.close();
     }
 }
 

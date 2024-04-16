@@ -5,6 +5,8 @@ import { DEFALT_WILDCARD } from "..";
 import { PubSub } from "../core";
 
 export type UsePubSubApi = {
+    broadcast(eventType: EventType): void;
+    broadcast<T>(eventType: EventType, payload: T): void;
     publish(eventType: EventType): void;
     publish<T>(eventType: EventType, payload: T): void;
     publishMultiple(...events: Array<Omit<Event, "submittedOn">>): void;
@@ -36,12 +38,17 @@ export const usePubSub = (topic: TopicName = DEFALT_WILDCARD): UsePubSubApi => {
     const publish = useCallback(<T = any>(eventType: EventType, payload?: T) => {
         PubSub.publish<T>(topic, eventType, payload);
     }, [topic]);
-    
+
+    const broadcast = useCallback(<T = any>(eventType: EventType, payload?: T) => {
+        PubSub.broadcast<T>(topic, eventType, payload);
+    }, [topic]);
+
     useEffect(() => {
         return () => unsubscribeAll();
     }, [topic]);
 
     return {
+        broadcast,
         publish,
         publishMultiple: useCallback((...events: Array<Omit<Event, "submittedOn">>) => events.forEach(({ eventType, payload }) => publish(eventType, payload)), [publish]),
         subscribeAll: useCallback((callback: (eventType: Event) => void) => {

@@ -13,7 +13,7 @@ export const usePublisher = (topic: TopicName = DEFALT_WILDCARD): PublishFunctio
     function publish(eventType: EventType): void;
     function publish<T>(eventType: EventType, payload: T): void;
     function publish<T>(eventType: EventType, payload?: T) {
-        if (payload !== undefined) return _publish<T>(eventType, payload);
+        if (typeof payload !== "undefined") return _publish<T>(eventType, payload);
         _publish(eventType);
     }
 
