@@ -1,4 +1,4 @@
-import { concat, filter, map, Observable, ReplaySubject, Subject, take } from "rxjs";
+import { concat, filter, map, Observable, ReplaySubject, skip, Subject } from "rxjs";
 import type { TopicName, Event as BaseEvent } from "./types";
 import { BroadcastEventChannel } from "./broadcastEventChannel";
 import { BROADCAST_CHANNEL_NAME } from "./index";
@@ -13,11 +13,13 @@ type EventPubSubTopic = {
 
 class EventPubSub {
     private bus: Record<TopicName, EventPubSubTopic> = {};
-    private broadcastEventChannel: BroadcastEventChannel = new BroadcastEventChannel(BROADCAST_CHANNEL_NAME);
+    private broadcastEventChannel: BroadcastEventChannel;
 
     private static instance: EventPubSub;
 
-    private constructor() { }
+    private constructor() {
+        this.broadcastEventChannel = new BroadcastEventChannel(BROADCAST_CHANNEL_NAME);
+    }
 
     public static getInstance(): EventPubSub {
         if (!this.instance) this.instance = new EventPubSub();
@@ -76,7 +78,7 @@ class EventPubSub {
 			const  historicalObservable = this.bus[topic].replaySubject.pipe(
 				filter((e: Event) => e.eventType === eventType),
 				map<Event, T>((e) => e.payload as T),
-				take(history) 
+				skip(history) 
 			);
 			return concat(historicalObservable, subjectOvervable);
 		}
