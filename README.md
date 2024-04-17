@@ -1,6 +1,6 @@
 # Puble - PubSub React Hooks with RxJS
 
-**Puble** provides a set of React hooks and a service for a publish-subscribe pattern powered by RxJS. It allows components within a React application to publish and subscribe to events asynchronously. Additionally it leverages the BroadCast Channel api to allow users to publish events between browsing contexts (windows, tabs, etc) and workers on the same origin.
+**Puble** provides a set of React hooks and a service for a publish-subscribe pattern powered by RxJS. It allows components within a React application to publish and subscribe to events asynchronously. **Puble** supports event priorities. Additionally it leverages the BroadCast Channel api to allow users to publish events between browsing contexts (windows, tabs, etc) and workers on the same origin.
 
 ## Installation
 ```bash
@@ -9,13 +9,13 @@ npm install @lostpfg/puble
 
 ## Components
 EventPubSub Class
-A singleton class that manages topics and event handling. Allows for registering namespaces (topics), publishing events, subscribing to topics, and disposing of topics.
+A singleton class that manages topics and event handling. Allows for registering namespaces (topics), publishing events, subscribing to topics, and disposing of topics. Internaly it uses an interval of 50ms to extract chunks of events based on priority on each topic. 
 
 Methods:
 - registerNamespace(topic): Registers a new topic if not already present.
-- publish(topic, eventType, payload): Publishes a new event to a specific topic.
-- brodcast(topic, eventType, payload): Broadcasts a new event to a specific topic.
-- subscribe(topic, eventType, history?): Subscribes to a topic and filters events by type. Optionally retrieves historical events.
+- publish(topic, eventType, priority, payload?): Publishes a new event to a specific topic, with specific priority.
+- brodcast(topic, eventType, priority, payload?): Broadcasts a new event to a specific topic. Event is received also in the same tab.
+- subscribe(topic, eventType, options?): Subscribes to a topic and filters events by type. Optionally retrieves historical events.
 - dispose(topic): Cleans up and removes a topic and its associated observables.
 
 ## Hooks
