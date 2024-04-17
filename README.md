@@ -36,6 +36,46 @@ Parameters:
 Returns:
 - Function to trigger events. It supports optional payload.
 
+Example:
+
+```typescript
+import { useBroadcast } from "@lostpfg/puble";
+
+const Broadcast: React.FunctionComponent = () => {
+    const { publishMultiple, publish } = usePubSub();
+    
+    return (
+        <React.Fragment>
+            <button onClick={() => publishMultiple({ eventType: "test:event", priority: 5, payload: { timestamp: new Date().getTime() } })}>
+                Publish Multiple
+            </button>
+            <button onClick={() => publishMultiple({ eventType: "test:event", priority: 1, payload: { timestamp: new Date().getTime() } }, { eventType: "test:event", priority: 10, payload: { timestamp: new Date().getTime() } })}>
+                Publish Multiple
+            </button>
+        </React.Fragment>
+    )
+}
+
+const Receiver: React.FunctionComponent = () => {
+    const { subscribe } = usePubSub();
+    const [event, setEvent] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        const unsubscribe = subscribe("test:event", (event: any) => {
+            setEvent(event);
+        });
+
+        return () => unsubscribe?.(); /* Optional as hook will handle it */
+    }, []);
+
+    return (
+        <React.Fragment>
+            <div>Last Event: {JSON.stringify(event)}</div>
+        </React.Fragment>
+    )
+}
+
+```
 
 ### usePublisher
 Simplifies publishing events in React Components. It uses usePubSub to access publishing functionality.
