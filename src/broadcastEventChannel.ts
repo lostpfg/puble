@@ -22,8 +22,8 @@ export class BroadcastEventChannel {
         };
     }
 
-    broadcast(topic: TopicName, eventType: EventType, payload?: any): void {
-        this.channel.postMessage({ topic, eventType, payload });
+    broadcast(topic: TopicName, eventType: EventType, priority: number, payload?: any): void {
+        this.channel.postMessage({ topic, eventType, priority, payload });
     }
 
 

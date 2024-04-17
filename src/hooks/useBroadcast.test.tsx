@@ -2,7 +2,7 @@ import React from "react";
 import { render, act } from "@testing-library/react";
 import useBroadcast from "./useBroadcast";
 import { EventType, TopicName } from "../types";
-import { DEFALT_WILDCARD } from "..";
+import { DEFAULT_WILDCARD } from "..";
 import usePubSub from "./usePubSub";
 
 interface TestListenerProps {
@@ -16,13 +16,13 @@ const TestPublisher: React.FC = () => {
 
     return (
         <>
-            <button onClick={() => publish("testEvent", { message: "test" })}>Publish Event</button>
+            <button onClick={() => publish("testEvent", { payload: { message: "test" } })}>Publish Event</button>
         </>
     );
 };
 
 const TestListener: React.FC<TestListenerProps> = (props) => {
-    const { topic = DEFALT_WILDCARD, eventType, onEvent } = props;
+    const { topic = DEFAULT_WILDCARD, eventType, onEvent } = props;
     const { subscribe } = usePubSub(topic);
 
     React.useEffect(() => {
@@ -36,7 +36,7 @@ const TestListener: React.FC<TestListenerProps> = (props) => {
 };
 
 describe("[useBroadcast]", () => {
-    it("[Publishing/Subscribing]: should publish and subscribe to an event", () => {
+    it("[Publishing/Subscribing]: should publish and subscribe to an event", async () => {
         const handleEvent = jest.fn();
         
         const { getByText } = render(
@@ -49,6 +49,8 @@ describe("[useBroadcast]", () => {
         act(() => {
             getByText("Publish Event").click();
         });
+
+        await new Promise((resolve) => setTimeout(resolve, 50));
 
         expect(handleEvent).toHaveBeenCalledWith({ message: "test" });
     });

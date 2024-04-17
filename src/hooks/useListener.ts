@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import usePubSub from "./usePubSub";
 import { EventType, TopicName } from "../types";
-import { DEFALT_WILDCARD } from "..";
+import { DEFAULT_WILDCARD } from "..";
 
 export function useListener <T = any>(topic: TopicName, eventType: EventType, callback: (payload: T) => void, deps?: React.DependencyList): void;
 export function useListener <T = any>(eventType: EventType, callback: (payload: T) => void, deps?: React.DependencyList): void;
@@ -13,7 +13,7 @@ export function useListener<T = any>(
 ) {
     const withTopic = typeof topicOrEventType === "string" && typeof eventTypeOrCallback === "string";
 
-    const topic = withTopic ? topicOrEventType : DEFALT_WILDCARD;
+    const topic = withTopic ? topicOrEventType : DEFAULT_WILDCARD;
     const eventType = withTopic ? eventTypeOrCallback as EventType : topicOrEventType as EventType;
     const callback = typeof eventTypeOrCallback === "function" ? eventTypeOrCallback: callbackOrDeps as (payload: T) => void;
     const dependencies = withTopic ? deps : callbackOrDeps as React.DependencyList;

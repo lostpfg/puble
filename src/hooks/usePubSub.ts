@@ -1,24 +1,24 @@
 import { useCallback, useEffect, useRef } from "react";
 import { first, Observable, Subscription } from "rxjs";
-import type { EventType, Event, TopicName } from "../types";
-import { DEFALT_WILDCARD } from "..";
+import type { EventType, Event, TopicName, SubscribeOptions } from "../types";
+import { DEFAULT_EVENT_PRIORITY, DEFAULT_WILDCARD } from "..";
 import { PubSub } from "../core";
 
 export type UsePubSubApi = {
     broadcast(eventType: EventType): void;
-    broadcast<T>(eventType: EventType, payload: T): void;
+    broadcast<T>(eventType: EventType, options: Omit<Event<T>, "submittedOn" | "eventType">): void;
     publish(eventType: EventType): void;
-    publish<T>(eventType: EventType, payload: T): void;
+    publish<T>(eventType: EventType, options: Omit<Event<T>, "submittedOn" | "eventType">): void;
     publishMultiple(...events: Array<Omit<Event, "submittedOn">>): void;
     subscribeAll: (callback: (event: Event) => void) => () => void;
-    subscribe(event: EventType, handler: () => void): () => void;
-    subscribe<T = any>(event: EventType, handler: (payload: T) => void): () => void;
-    subscribeOnce(event: EventType, handler: () => void): () => void;
-    subscribeOnce<T = any>(event: EventType, handler: (payload: T) => void): () => void;
+    subscribe(event: EventType, handler: () => void, options?: SubscribeOptions): () => void;
+    subscribe<T = any>(event: EventType, handler: (payload: T) => void, options?: SubscribeOptions): () => void;
+    subscribeOnce(event: EventType, handler: () => void, options?: SubscribeOptions): () => void;
+    subscribeOnce<T = any>(event: EventType, handler: (payload: T) => void, options?: SubscribeOptions): () => void;
     unsubscribeAll: () => void;
 }
 
-export const usePubSub = (topic: TopicName = DEFALT_WILDCARD): UsePubSubApi => {
+export const usePubSub = (topic: TopicName = DEFAULT_WILDCARD): UsePubSubApi => {
     const subscriptions = useRef<Array<Subscription>>([]); 
 
     const unsubscribe = useCallback((subscription: Subscription) => {
@@ -35,12 +35,12 @@ export const usePubSub = (topic: TopicName = DEFALT_WILDCARD): UsePubSubApi => {
         return () => unsubscribe(subscription);
     }, [unsubscribe]);
 
-    const publish = useCallback(<T = any>(eventType: EventType, payload?: T) => {
-        PubSub.publish<T>(topic, eventType, payload);
+    const publish = useCallback(<T = any>(eventType: EventType, options?: Omit<Event<T>, "submittedOn" | "eventType">) => {
+        PubSub.publish<T>(topic, eventType, typeof options?.priority === "number"? options.priority: DEFAULT_EVENT_PRIORITY, options?.payload);
     }, [topic]);
 
-    const broadcast = useCallback(<T = any>(eventType: EventType, payload?: T) => {
-        PubSub.broadcast<T>(topic, eventType, payload);
+    const broadcast = useCallback(<T = any>(eventType: EventType, options?: Omit<Event<T>, "submittedOn" | "eventType">) => {
+        PubSub.broadcast<T>(topic, eventType, typeof options?.priority === "number"? options.priority: DEFAULT_EVENT_PRIORITY, options?.payload);
     }, [topic]);
 
     useEffect(() => {
@@ -50,14 +50,14 @@ export const usePubSub = (topic: TopicName = DEFALT_WILDCARD): UsePubSubApi => {
     return {
         broadcast,
         publish,
-        publishMultiple: useCallback((...events: Array<Omit<Event, "submittedOn">>) => events.forEach(({ eventType, payload }) => publish(eventType, payload)), [publish]),
-        subscribeAll: useCallback((callback: (eventType: Event) => void) => {
+        publishMultiple: useCallback((...events: Array<Omit<Event, "submittedOn">>) => events.forEach(({ eventType, payload, priority }) => publish(eventType, { priority, payload })), [publish]),
+        subscribeAll: useCallback((callback: (eventType: Event) => void, options?: SubscribeOptions) => {
             const subscription = PubSub.subscribeTopic(topic).subscribe(callback);
             subscriptions.current.push(subscription);
             return () => unsubscribe(subscription);
         }, [topic]),
-        subscribe: useCallback(<T = any>(eventType: EventType, handler: (payload: T) => void, history: number = 0) => createSubscription(PubSub.subscribe<T>(topic, eventType, history), handler), [topic, createSubscription]),
-        subscribeOnce: useCallback(<T = any>(eventType: EventType, handler: (payload?: T) => void) => createSubscription(PubSub.subscribe<T>(topic, eventType).pipe(first()), handler), [topic, createSubscription]),
+        subscribe: useCallback(<T = any>(eventType: EventType, handler: (payload: T) => void, options?: SubscribeOptions) => createSubscription(PubSub.subscribe<T>(topic, eventType, options), handler), [topic, createSubscription]),
+        subscribeOnce: useCallback(<T = any>(eventType: EventType, handler: (payload?: T) => void, options?: SubscribeOptions) => createSubscription(PubSub.subscribe<T>(topic, eventType, options).pipe(first()), handler), [topic, createSubscription]),
         unsubscribeAll,
     };
 }

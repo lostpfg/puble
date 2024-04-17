@@ -1,14 +1,14 @@
 import React from "react";
 import usePubSub from "./usePubSub";
 import { render, cleanup, act } from "@testing-library/react";
-import { DEFALT_WILDCARD } from "../index";
+import { DEFAULT_WILDCARD } from "../index";
 
 interface TestComponentProps {
     topic?: string;
     onEvent: (payload: any) => void;
 }
 
-const TestComponent: React.FC<TestComponentProps> = ({ topic = DEFALT_WILDCARD, onEvent }) => {
+const TestComponent: React.FC<TestComponentProps> = ({ topic = DEFAULT_WILDCARD, onEvent }) => {
     const { subscribe, publish, publishMultiple } = usePubSub(topic);
 
     React.useEffect(() => {
@@ -20,7 +20,7 @@ const TestComponent: React.FC<TestComponentProps> = ({ topic = DEFALT_WILDCARD, 
 
     return (
         <>
-            <button onClick={() => publish("testEvent", { message: "test" })}>Test Event</button>
+            <button onClick={() => publish("testEvent", { payload: { message: "test" } })}>Test Event</button>
             <button onClick={() => {
                 const events = Array.from({ length: 10 }, (_, i) => ({
                     eventType: "testEvent",
@@ -37,7 +37,7 @@ const TestComponent: React.FC<TestComponentProps> = ({ topic = DEFALT_WILDCARD, 
 describe("[usePubSub]", () => {
     afterEach(cleanup);
 
-    it("[Publishing/Subscribing]: should publish and subscribe to an event", () => {
+    it("[Publishing/Subscribing]: should publish and subscribe to an event", async () => {
         const handleEvent = jest.fn();
         const { getByText } = render(
             <TestComponent onEvent={handleEvent} />
@@ -46,11 +46,13 @@ describe("[usePubSub]", () => {
         act(() => {
             getByText("Test Event").click();
         });
+        
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(handleEvent).toHaveBeenCalledWith({ message: "test" });
     });
 
-    it("[Multiple Publishing/Subscribing]: should handle multiple event publishing", () => {
+    it("[Multiple Publishing/Subscribing]: should handle multiple event publishing", async () => {
         const handleEvent = jest.fn();
         const { getByText } = render(
             <TestComponent onEvent={handleEvent} />
@@ -59,6 +61,8 @@ describe("[usePubSub]", () => {
         act(() => {
             getByText("Test Multiple").click();
         });
+        
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(handleEvent).toHaveBeenCalledTimes(10);
         for (let i = 0; i < 10; i++) {
@@ -66,7 +70,7 @@ describe("[usePubSub]", () => {
         }
     });
 
-    it("[Automatic Unsubscribing]: should automatically unsubscribe on component unmount", () => {
+    it("[Automatic Unsubscribing]: should automatically unsubscribe on component unmount", async () => {
         const handleEvent = jest.fn();
         
         const { getByText, unmount } = render(
@@ -76,6 +80,8 @@ describe("[usePubSub]", () => {
         act(() => {
             getByText("Test Event").click();
         });
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         unmount();
 

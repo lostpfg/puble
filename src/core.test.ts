@@ -1,4 +1,4 @@
-import { DEFALT_WILDCARD } from "./index";
+import { DEFAULT_WILDCARD } from "./index";
 import { PubSub } from "./core";
 import { EventType, TopicName } from "./types";
 
@@ -6,7 +6,7 @@ type Payload = { data: string | number };
 
 describe("[EventPubSub]", () => {
     afterEach(() => {
-        PubSub.dispose(DEFALT_WILDCARD);
+        PubSub.dispose(DEFAULT_WILDCARD);
     });
 
     test("[Topic Registration]: should register a new topic", () => {
@@ -33,7 +33,7 @@ describe("[EventPubSub]", () => {
             expect(payload).toEqual(payload);
             done();
         });
-        PubSub.publish(topic, eventType, { payload });
+        PubSub.publish(topic, eventType, 10, { payload });
     });
 
     test("[Subscribing with History]: should receive the correct number of past events", done => {
@@ -46,7 +46,7 @@ describe("[EventPubSub]", () => {
         PubSub.registerNamespace(topic);
 
         for (let i = 0; i < totalEvents; i++) {
-            PubSub.publish<Payload>(topic, eventType, { data: i });
+            PubSub.publish<Payload>(topic, eventType, 1, { data: i });
         }
 
         const validate = () => {
@@ -56,7 +56,7 @@ describe("[EventPubSub]", () => {
             done();
         };
 
-        PubSub.subscribe<Payload>(topic, eventType, historyCount)
+        PubSub.subscribe<Payload>(topic, eventType, { history: historyCount })
             .subscribe(event => {
                 receivedEvents.push(event.data);
                 receivedEvents.length === historyCount && validate();
