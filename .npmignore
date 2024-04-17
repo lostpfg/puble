@@ -15,4 +15,5 @@ publish.sh
 README.md
 LICENSE
 .github
-jest.config.js
+jest.config.ts
+jest.setup.js
