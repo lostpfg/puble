@@ -9,8 +9,26 @@ export type Event<T = any> = {
     priority?: number;
 }
 
-export type SubscribeOptions = {
+type BaseSubscribeOptions = {
     history?: number;
     throttle?: number;
     debounce?: number;
 };
+
+export type SubscribeTopicOptions = 
+    & BaseSubscribeOptions
+    & {
+        query?: (event: Omit<Event, "priority">) => boolean
+    };
+
+export type SubscribeEventTypeOptions<T = any> =
+    & BaseSubscribeOptions
+    & {
+        query?: (payload: Event<T>["payload"]) => boolean
+    };
+
+export type MonitoringData = {
+    registeredTopics: Nullable<Array<TopicName>>;
+    totalEvents: number;
+    totalSubscribers: number;
+}

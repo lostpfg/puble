@@ -1,8 +1,9 @@
 import { concat, debounceTime, filter, from, map, Observable, Subject, throttleTime } from "rxjs";
-import type { TopicName, Event as BaseEvent, Nullable } from "./types";
+import type { TopicName, Event as BaseEvent, Nullable, SubscribeTopicOptions, SubscribeEventTypeOptions, EventType, MonitoringData } from "./types";
 import { BroadcastEventChannel } from "./broadcastEventChannel";
 import { BROADCAST_CHANNEL_NAME, BUFFER_SIZE, DEFAULT_EVENT_PRIORITY, DEQUEUE_INTERVAL } from "./index";
 import { PriorityQueue } from "./priorityQueue";
+import { SubscribableEvent } from "./subscribableEvent";
 
 type Event<T = any> = BaseEvent<T> & { submittedOn: number; }
 
@@ -18,17 +19,38 @@ type EventPubSubTopic = {
 class TopicInfo {
     public lastEvent: Nullable<Event> = null;
     private _buffer: Array<Event> = [];
-
+    
     get buffer(): Array<Event> {
         return this._buffer;
+    }
+
+    private _totalEvents: number = 0;
+        
+    get totalEvents(): number {
+        return this._totalEvents;
+    }
+
+    private _totalSubscribers: number = 0;
+
+    get totalSubscribers(): number {
+        return this._totalSubscribers;
     }
 
     constructor() {}
 
     push(event: Event): void {
         if (this._buffer.length > BUFFER_SIZE) this._buffer.shift();
+        this._totalEvents++;
         this.lastEvent = event;
         this._buffer.push(event);
+    }
+
+    subscribe(): void {
+        this._totalSubscribers++;
+    }
+
+    unsubscribe(): void {
+        this._totalSubscribers--;
     }
 }
 
@@ -112,51 +134,123 @@ class EventPubSub {
         this.broadcastEventChannel.broadcast(topic, eventType, priority, payload);
     }
 
-    public subscribeTopic(topic: string, options?: any) {
+    public subscribeTopic(topic: string, options?: SubscribeTopicOptions): SubscribableEvent<Event> {
         this.registerNamespace(topic);
         const now = new Date().getTime();
+        this.bus[topic].info.subscribe();
+        const observable = new SubscribableEvent<Event>((subscriber) => {
+            let stream = this.bus[topic].subject.pipe(
+                filter((e: Event) => {
+                    let ret: boolean = e.submittedOn > now;
+                    if (!ret) return ret;
+                    if (options?.query) return options.query({ eventType: e.eventType, payload: e.payload });
+                    return ret;
+                }),
+                map<Event, Event>((e) => e as Event)
+            );
 
-        let stream = this.bus[topic].subject.pipe(
-            map<Event, Event>((e) => e as Event)
-        );
+            if (options?.throttle) {
+                stream = stream.pipe(throttleTime(options.throttle));
+            } else if (options?.debounce) {
+                stream = stream.pipe(debounceTime(options.debounce));
+            }
 
-        if (options?.throttle) {
-            stream = stream.pipe(throttleTime(options.throttle));
-        } else if (options?.debounce) {
-            stream = stream.pipe(debounceTime(options.debounce));
-        }
+            if (typeof options?.history !== "undefined" && options.history > 0) {
+                const historyEvents = this.bus[topic].info.buffer
+                .filter((e: Event) => {
+                    let ret: boolean = e.submittedOn <= now;
+                    if (!ret) return ret;
+                    if (options?.query) return options.query({ eventType: e.eventType, payload: e.payload });
+                    return ret;
+                })
+                .slice(-options.history);
+                return concat(from(historyEvents), stream).subscribe(subscriber);
+            }
 
-        if (typeof options?.history !== "undefined" && options.history > 0) {
-            const historyEvents = this.bus[topic].info.buffer.filter((e: Event) => e.submittedOn <= now).slice(-options.history);
-            return concat(from(historyEvents), stream);
-        }
+            const subscription = stream.subscribe(subscriber);
+            return subscription;
+        }, () => {
+            this.bus[topic].info.unsubscribe();
+        });
 
-        return stream;
+        return observable;
+        
+        // let stream = this.bus[topic].subject.pipe(
+        //     filter((e: Event) => {
+        //         let ret: boolean = e.submittedOn > now;
+        //         if (!ret) return ret;
+        //         if (options?.query) return options.query({ eventType: e.eventType, payload: e.payload });
+        //         return ret;
+        //     }),
+        //     map<Event, Event>((e) => e as Event)
+        // );
+
+        // if (options?.throttle) {
+        //     stream = stream.pipe(throttleTime(options.throttle));
+        // } else if (options?.debounce) {
+        //     stream = stream.pipe(debounceTime(options.debounce));
+        // }
+
+        // if (typeof options?.history !== "undefined" && options.history > 0) {
+        //     const historyEvents = this.bus[topic].info.buffer
+        //     .filter((e: Event) => {
+        //         let ret: boolean = e.submittedOn <= now;
+        //         if (!ret) return ret;
+        //         if (options?.query) return options.query({ eventType: e.eventType, payload: e.payload });
+        //         return ret;
+        //     })
+        //     .slice(-options.history);
+        //     return concat(from(historyEvents), stream, () => {
+        //         this.bus[topic].info.unsubscribe();
+        //     });
+        // }
+
+        // return stream;
     }
 
-    public subscribe<T = any>(topic: string, eventType: string, options?: any): Observable<T> {
-		this.registerNamespace(topic);
-        const now = new Date().getTime();
+    public subscribe<T = any>(topic: string, eventType: EventType, options?: SubscribeEventTypeOptions<T>): SubscribableEvent<T> {
+        this.registerNamespace(topic);
+        this.bus[topic].info.subscribe();
 
-        let stream = this.bus[topic].subject.pipe(
-            filter((e: Event) => e.eventType === eventType && e.submittedOn > now),
-            map<Event, T>((e) => {
-                return e.payload as T;
-            })
-        );
+        const observable = new SubscribableEvent<T>((subscriber) => {
+            const now = new Date().getTime();
 
-        if (options?.throttle) {
-            stream = stream.pipe(throttleTime(options.throttle));
-        } else if (options?.debounce) {
-            stream = stream.pipe(debounceTime(options.debounce));
-        }
+            let stream = this.bus[topic].subject.pipe(
+                filter((e: Event) => {
+                    let ret = e.eventType === eventType && e.submittedOn > now;
+                    if (!ret) return ret;
+                    if (options?.query) return options.query(e.payload);
+                    return ret;
+                }),
+                map<Event, T>((e) => e.payload as T)
+            );
 
-        if (typeof options?.history !== "undefined" && options.history > 0) {
-            const historyEvents = this.bus[topic].info.buffer.filter(e => e.eventType === eventType &&  e.submittedOn <= now).map(e => e.payload).slice(-options.history) as Array<T>;
-            return concat(from(historyEvents), stream);
-        }
-	
-		return stream;
+            if (options?.throttle) {
+                stream = stream.pipe(throttleTime(options.throttle));
+            } else if (options?.debounce) {
+                stream = stream.pipe(debounceTime(options.debounce));
+            }
+
+            if (typeof options?.history !== "undefined" && options.history > 0) {
+                const historyEvents = this.bus[topic].info.buffer
+                .filter(e => {
+                    let ret: boolean = e.submittedOn <= now;
+                    if (!ret) return ret;
+                    if (options?.query) return options.query(e.payload);
+                    return ret;
+                })
+                .map(e => e.payload)
+                .slice(-options.history) as Array<T>;
+                return concat(from(historyEvents), stream).subscribe(subscriber);
+            }
+
+            const subscription = stream.subscribe(subscriber);
+            return subscription;
+        }, () => {
+            this.bus[topic].info.unsubscribe();
+        });
+
+        return observable;
     }
 
     public dispose(topic: string): void {
@@ -165,7 +259,18 @@ class EventPubSub {
         interval && clearInterval(interval);
         this.bus[topic].subject.complete();
         delete this.bus[topic];
-        this.broadcastEventChannel.close();
+    }
+
+    public monitorEvents(): Observable<MonitoringData> {
+        return new Observable(subscriber => {
+            setInterval(() => {
+                subscriber.next({
+                    registeredTopics: Object.keys(this.bus).length? Object.keys(this.bus): null,
+                    totalEvents: Object.values(this.bus).reduce((acc, topic) => acc + topic.info.totalEvents, 0),
+                    totalSubscribers: Object.values(this.bus).reduce((acc, topic) => acc + topic.subject.observers.length, 0),
+                });
+            }, 1000);
+        });
     }
 }
 
