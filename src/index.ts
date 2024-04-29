@@ -5,3 +5,11 @@ export const DEFAULT_EVENT_PRIORITY = 0;
 export const BROADCAST_CHANNEL_NAME = "puble-broadcast-channel";
 export * from "./hooks";
 export { PubSub } from "./core";
+
+export type {
+    Event,
+    TopicName,
+    SubscribeTopicOptions,
+    SubscribeEventTypeOptions,
+    MonitoringData,
+} from "./types";

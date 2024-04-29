@@ -101,11 +101,8 @@ class EventPubSub {
     }
 
     private pushToBuffer(topic: TopicName, event: Event): void {
-        if (this.bus[topic].info.buffer.length > 1000) {
-            this.bus[topic].info.buffer.shift();
-        }
-        this.bus[topic].info.lastEvent = event;
-        this.bus[topic].info.buffer.push(event);
+        if (this.bus[topic].info.buffer.length > 1000) this.bus[topic].info.buffer.shift();
+        this.bus[topic].info.push(event);
     }
 
     public topicExists(topic: TopicName): boolean {
@@ -174,38 +171,6 @@ class EventPubSub {
         });
 
         return observable;
-        
-        // let stream = this.bus[topic].subject.pipe(
-        //     filter((e: Event) => {
-        //         let ret: boolean = e.submittedOn > now;
-        //         if (!ret) return ret;
-        //         if (options?.query) return options.query({ eventType: e.eventType, payload: e.payload });
-        //         return ret;
-        //     }),
-        //     map<Event, Event>((e) => e as Event)
-        // );
-
-        // if (options?.throttle) {
-        //     stream = stream.pipe(throttleTime(options.throttle));
-        // } else if (options?.debounce) {
-        //     stream = stream.pipe(debounceTime(options.debounce));
-        // }
-
-        // if (typeof options?.history !== "undefined" && options.history > 0) {
-        //     const historyEvents = this.bus[topic].info.buffer
-        //     .filter((e: Event) => {
-        //         let ret: boolean = e.submittedOn <= now;
-        //         if (!ret) return ret;
-        //         if (options?.query) return options.query({ eventType: e.eventType, payload: e.payload });
-        //         return ret;
-        //     })
-        //     .slice(-options.history);
-        //     return concat(from(historyEvents), stream, () => {
-        //         this.bus[topic].info.unsubscribe();
-        //     });
-        // }
-
-        // return stream;
     }
 
     public subscribe<T = any>(topic: string, eventType: EventType, options?: SubscribeEventTypeOptions<T>): SubscribableEvent<T> {
