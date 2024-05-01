@@ -218,7 +218,7 @@ class EventPubSub {
         return observable;
     }
 
-    public dispose(topic: string): void {
+    public dispose(topic: TopicName): void {
         if (!this.topicExists(topic)) return;
         const interval = this.bus[topic].interval;
         interval && clearInterval(interval);
@@ -232,7 +232,7 @@ class EventPubSub {
                 subscriber.next({
                     registeredTopics: Object.keys(this.bus).length? Object.keys(this.bus): null,
                     totalEvents: Object.values(this.bus).reduce((acc, topic) => acc + topic.info.totalEvents, 0),
-                    totalSubscribers: Object.values(this.bus).reduce((acc, topic) => acc + topic.subject.observers.length, 0),
+                    totalSubscribers: Object.values(this.bus).reduce((acc, topic) => acc + topic.info.totalSubscribers, 0),
                 });
             }, 1000);
         });

@@ -13,10 +13,12 @@ A singleton class that manages topics and event handling. Allows for registering
 
 Methods:
 - registerNamespace(topic): Registers a new topic if not already present.
-- publish(topic, eventType, priority, payload?): Publishes a new event to a specific topic, with specific priority.
-- brodcast(topic, eventType, priority, payload?): Broadcasts a new event to a specific topic. Event is received also in the same tab.
-- subscribe(topic, eventType, options?): Subscribes to a topic and filters events by type. Optionally retrieves historical events.
+- publish(topic, eventType, priority, priority?, payload?): Publishes a new event to a specific topic, with specific priority.
+- broadcast(topic, eventType, priority, priority?, payload?): Broadcasts a new event to a specific topic, with specific priority.
+- subscribeTopic(topic, options?): Subscribes to a topic. Optionally it retrieves historical events, filters out incoming values, throttles and debounces output.
+- subscribe(topic, eventType, options?): Subscribes to a topic and specific event types. Optionally it retrieves historical events, filters out incoming values, throttles and debounces output.
 - dispose(topic): Cleans up and removes a topic and its associated observables.
+- monitorEvents(): Monitoring info regarding the EventPubSub class.
 
 ## Hooks
 
@@ -31,7 +33,6 @@ An API with methods for publishing and subscribing to events, managing multiple 
 Example:
 
 ```typescript
-
 import React from "react";
 import { useBroadcast } from "@lostpfg/puble";
 
@@ -64,7 +65,7 @@ const Receiver: React.FunctionComponent = () => {
 
     return (
         <div>Last Event: {JSON.stringify(event)}</div>
-    )
+    );
 }
 
 ```
@@ -91,11 +92,10 @@ const Example: React.FunctionComponent = () => {
         <button onClick={() => broadcast("test:event", { priority: 5, payload: { timestamp: new Date().getTime() } })}>
             Broadcast
         </button>
-    )
+    );
 }
 
 ```
-
 
 ### usePublisher
 Simplifies publishing events in React Components. It uses usePubSub to access publishing functionality.
@@ -119,13 +119,13 @@ const Example: React.FunctionComponent = () => {
         <button onClick={() => publish("test:event", { priority: 5, payload: { timestamp: new Date().getTime() } })}>
             Publish
         </button>
-    )
+    );
 }
 
 ```
 
 ###  useListener
-Simplifies subscribtion to events in React Components. Automatically handles subscription lifecycle with component mounting and unmounting.
+Simplifies subscribtion to events in React Components. Automatically handles subscription lifecycle with component mounting and unmounting lifecycle.
 
 Parameters:
 - Supports dual use: Either pass a topic name and event type, or just an event type for the default topic.
@@ -133,12 +133,36 @@ Parameters:
 - deps: Dependency array to control re-subscription in React's useEffect.
 
 ```typescript
+import React from "react";
+import { useListener } from "@lostpfg/puble";
+
 const Receiver: React.FunctionComponent = () => {
     const [event, setEvent] = React.useState<any>(null);
     useListener("test:event", (event) => setEvent(event));
 
     return (
         <div>Last Event: {JSON.stringify(event)}</div>
-    )
+    );
+}
+```
+
+###  useMonitorData
+Provides a simple to hook that subscribes to the monitor data of the core class. Automatically handles subscription lifecycle with component mounting and unmounting lifecycle.
+
+Parameters:
+- Supports dual use: Either pass a topic name and event type, or just an event type for the default topic.
+- callback: Function that executes when an event is received.
+- deps: Dependency array to control re-subscription in React's useEffect.
+
+```typescript
+import React from "react";
+import { useMonitorData } from "@lostpfg/puble";
+
+const Receiver: React.FunctionComponent = () => {
+    const data = useMonitorData();
+
+    return (
+        <div>Monitoring Data: {JSON.stringify(data?? {})}</div>
+    );
 }
 ```

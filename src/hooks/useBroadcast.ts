@@ -3,7 +3,7 @@ import type { Event, EventType, TopicName } from "../types";
 import { DEFAULT_WILDCARD } from "..";
 import { PublishFunction } from "./usePublisher";
 
-export const useBroadcast = (topic: TopicName = DEFAULT_WILDCARD): PublishFunction => {
+const useBroadcast = (topic: TopicName = DEFAULT_WILDCARD): PublishFunction => {
     const { broadcast: _broadcast } = usePubSub(topic); /* Consume Context. */
     
     function broadcast(eventType: EventType): void;

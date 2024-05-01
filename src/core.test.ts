@@ -29,7 +29,7 @@ describe("[EventPubSub]", () => {
             expect(payload).toEqual(payload);
             done();
         });
-        PubSub.publish(topic, eventType, 10, { payload });
+        PubSub.publish(topic, eventType, 0, { payload });
     });
 
     test("[Subscribing with History]: should receive the correct number of past events", done => {

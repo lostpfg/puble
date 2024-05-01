@@ -7,7 +7,7 @@ export type PublishFunction = {
     <T>(eventType: EventType, payload: T): void;
 }
 
-export const usePublisher = (topic: TopicName = DEFAULT_WILDCARD): PublishFunction => {
+const usePublisher = (topic: TopicName = DEFAULT_WILDCARD): PublishFunction => {
     const { publish: _publish } = usePubSub(topic); /* Consume Context. */
     
     function publish(eventType: EventType): void;

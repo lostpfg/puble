@@ -18,7 +18,7 @@ export type UsePubSubApi = {
     unsubscribeAll: () => void;
 }
 
-export const usePubSub = (topic: TopicName = DEFAULT_WILDCARD): UsePubSubApi => {
+const usePubSub = (topic: TopicName = DEFAULT_WILDCARD): UsePubSubApi => {
     const subscriptions = useRef<Array<Subscription>>([]); 
 
     const unsubscribe = useCallback((subscription: Subscription) => {

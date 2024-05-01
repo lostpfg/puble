@@ -3,7 +3,7 @@ import { render, act } from "@testing-library/react";
 import useListener from "./useListener";
 import type { EventType, TopicName } from "../types";
 import { DEFAULT_WILDCARD } from "../index";
-import { usePubSub } from "./usePubSub";
+import usePubSub from "./usePubSub";
 
 interface TestPublisherProps {
     topic?: TopicName;

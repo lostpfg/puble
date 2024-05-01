@@ -3,9 +3,9 @@ import usePubSub from "./usePubSub";
 import { EventType, TopicName } from "../types";
 import { DEFAULT_WILDCARD } from "..";
 
-export function useListener <T = any>(topic: TopicName, eventType: EventType, callback: (payload: T) => void, deps?: React.DependencyList): void;
-export function useListener <T = any>(eventType: EventType, callback: (payload: T) => void, deps?: React.DependencyList): void;
-export function useListener<T = any>(
+function useListener <T = any>(topic: TopicName, eventType: EventType, callback: (payload: T) => void, deps?: React.DependencyList): void;
+function useListener <T = any>(eventType: EventType, callback: (payload: T) => void, deps?: React.DependencyList): void;
+function useListener<T = any>(
     topicOrEventType: TopicName | EventType,
     eventTypeOrCallback: EventType | ((payload: T) => void),
     callbackOrDeps?: ((payload: T) => void) | React.DependencyList,
